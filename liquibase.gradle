@@ -18,7 +18,7 @@ task diffChangelog(type: JavaExec) {
 
     classpath sourceSets.main.runtimeClasspath
     classpath configurations.liquibase
-    mainClass.set("liquibase.integration.commandline.Main")
+    main = "liquibase.integration.commandline.Main"
 
     args "--changeLogFile=" + hibernateProperties.getProperty('liquibase.changelog.file_path') + timestamp() + "_changelog.yaml"
     args "--referenceUrl=hibernate:spring:" + hibernateProperties.getProperty('hibernate.entity.package') + "?dialect=" + hibernateProperties.getProperty('hibernate.dialect')
@@ -36,7 +36,7 @@ task diff(type: JavaExec) {
 
     classpath sourceSets.main.runtimeClasspath
     classpath configurations.liquibase
-    mainClass.set("liquibase.integration.commandline.Main")
+    main = "liquibase.integration.commandline.Main"
 
     args "--referenceUrl=hibernate:spring:" + hibernateProperties.getProperty('hibernate.entity.package') + "?dialect=" + hibernateProperties.getProperty('hibernate.dialect')
     args "--url=" + hibernateProperties.getProperty('hibernate.connection.url')
@@ -54,7 +54,7 @@ task update(type: JavaExec) {
 
     classpath sourceSets.main.runtimeClasspath
     classpath configurations.liquibase
-    mainClass.set("liquibase.integration.commandline.Main")
+    main = "liquibase.integration.commandline.Main"
 
     args "--changeLogFile=src/main/resources/db/changelog/db.changelog-master.yaml"
     args "--url=" + hibernateProperties.getProperty('hibernate.connection.url')
