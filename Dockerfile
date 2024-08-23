@@ -6,7 +6,7 @@ COPY . .
 
 RUN chmod +x scripts/pgsql_restore.sh
 
-RUN gradle build -x test
+RUN gradle build -x test  
 
 FROM postgres:13-alpine as db-setup
 
