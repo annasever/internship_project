@@ -6,6 +6,10 @@ pipeline {
     environment {
         AWS_ACCESS_KEY_ID     = credentials('aws-access-key')
         AWS_SECRET_ACCESS_KEY = credentials('aws-secret-key')
+        POSTGRES_DB           = 'mydatabase'
+        POSTGRES_USER         = 'myuser'
+        POSTGRES_PASSWORD     = 'mypassword'
+        MONGO_INITDB_DATABASE = 'my_mongo_database'
     }
 
 
