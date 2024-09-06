@@ -12,7 +12,7 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                git branch: 'main', url: 'git@github.com:annasever/internship_project.git'
+                git branch: 'develop', url: 'git@github.com:annasever/internship_project.git'
             }
         }
 
