@@ -26,7 +26,7 @@ pipeline {
             steps {
                 dir('backend') {
                     script {
-                        sh 'docker build -t $BACKEND_IMAGE .'
+                        sh 'sudo docker build -t $BACKEND_IMAGE .'
                     }
                 }
             }
@@ -36,7 +36,7 @@ pipeline {
             steps {
                 dir('frontend') {
                     script {
-                        sh 'docker build -t $FRONTEND_IMAGE .'
+                        sh 'sudo docker build -t $FRONTEND_IMAGE .'
                     }
                 }
             }
@@ -46,8 +46,8 @@ pipeline {
             steps {
                 script {
                     docker.withRegistry('https://index.docker.io/v1/', 'dockerhub_credentials') {
-                        sh 'docker push $BACKEND_IMAGE'
-                        sh 'docker push $FRONTEND_IMAGE'
+                        sh 'sudo docker push $BACKEND_IMAGE'
+                        sh 'sudo docker push $FRONTEND_IMAGE'
                     }
                 }
             }
@@ -56,7 +56,7 @@ pipeline {
         stage('Run Docker Compose') {
             steps {
                 script {
-                    sh 'docker-compose up -d'
+                    sh 'sudo docker-compose up -d'
                 }
             }
         }
@@ -65,7 +65,7 @@ pipeline {
     post {
         always {
             script {
-                sh 'docker-compose down'
+                sh 'sudo docker-compose down'
             }
         }
     }
