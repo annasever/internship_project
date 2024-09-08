@@ -24,10 +24,9 @@ pipeline {
 
         stage('Build Backend Docker Image') {
             steps {
-                script {
-                    docker.withRegistry('https://registry.hub.docker.com', DOCKERHUB_CREDENTIALS) {
-                        def backendImage = docker.build(BACKEND_IMAGE)
-                        backendImage.push()
+                dir('backend') {
+                    script {
+                        sh 'docker build -t $BACKEND_IMAGE .'
                     }
                 }
             }
@@ -37,10 +36,18 @@ pipeline {
             steps {
                 dir('frontend') {
                     script {
-                        docker.withRegistry('https://registry.hub.docker.com', DOCKERHUB_CREDENTIALS) {
-                            def frontendImage = docker.build(FRONTEND_IMAGE)
-                            frontendImage.push()
-                        }
+                        sh 'docker build -t $FRONTEND_IMAGE .'
+                    }
+                }
+            }
+        }
+
+        stage('Push Docker Images to DockerHub') {
+            steps {
+                script {
+                    docker.withRegistry('https://index.docker.io/v1/', 'dockerhub_credentials') {
+                        sh 'docker push $BACKEND_IMAGE'
+                        sh 'docker push $FRONTEND_IMAGE'
                     }
                 }
             }
@@ -49,7 +56,7 @@ pipeline {
         stage('Run Docker Compose') {
             steps {
                 script {
-                    sh 'sudo docker-compose up -d'
+                    sh 'docker-compose up -d'
                 }
             }
         }
@@ -58,7 +65,7 @@ pipeline {
     post {
         always {
             script {
-                sh 'sudo docker-compose down'
+                sh 'docker-compose down'
             }
         }
     }
