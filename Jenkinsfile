@@ -10,8 +10,10 @@ pipeline {
         POSTGRES_USER         = credentials('myuser')
         POSTGRES_PASSWORD     = credentials('mypassword')
         MONGO_INITDB_DATABASE = credentials('my_mongo_database')
+        DOCKERHUB_CREDENTIALS = credentials('dockerhub_credentials')
+        BACKEND_IMAGE = 'annasever/backend'
+        FRONTEND_IMAGE = 'annasever/frontend'
     }
-
 
     stages {
         stage('Checkout') {
@@ -20,18 +22,34 @@ pipeline {
             }
         }
 
-     stage('Build Docker Image') {
+        stage('Build Backend Docker Image') {
             steps {
                 script {
-                    sh 'docker build -t internship_project_image .'
+                    docker.withRegistry('https://registry.hub.docker.com', DOCKERHUB_CREDENTIALS) {
+                        def backendImage = docker.build(BACKEND_IMAGE)
+                        backendImage.push()
+                    }
                 }
             }
         }
 
-    stage('Run Docker Compose') {
-        steps {
-            script {
-                sh 'docker-compose up -d'
+        stage('Build Frontend Docker Image') {
+            steps {
+                dir('frontend') {
+                    script {
+                        docker.withRegistry('https://registry.hub.docker.com', DOCKERHUB_CREDENTIALS) {
+                            def frontendImage = docker.build(FRONTEND_IMAGE)
+                            frontendImage.push()
+                        }
+                    }
+                }
+            }
+        }
+
+        stage('Run Docker Compose') {
+            steps {
+                script {
+                    sh 'docker-compose up -d'
                 }
             }
         }
@@ -39,7 +57,10 @@ pipeline {
 
     post {
         always {
-            sh 'docker-compose down' 
+            script {
+                sh 'docker-compose down'
+            }
         }
     }
 }
+
