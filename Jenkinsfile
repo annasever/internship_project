@@ -24,13 +24,11 @@ pipeline {
 
         stage('Build Backend Docker Image') {
             steps {
-                dir('backend') {
-                    script {
-                        try {
-                            sh 'docker build -t $BACKEND_IMAGE .'
-                        } catch (Exception e) {
-                            error "Failed to build backend Docker image: ${e.message}"
-                        }
+                script {
+                    try {
+                        sh 'docker build -t $BACKEND_IMAGE .'
+                    } catch (Exception e) {
+                        error "Failed to build backend Docker image: ${e.message}"
                     }
                 }
             }
