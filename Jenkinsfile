@@ -39,7 +39,7 @@ pipeline {
                 dir('frontend') {
                     script {
                         try {
-                            sh 'docker build -t $FRONTEND_IMAGE .'
+                            sh 'docker build -t $FRONTEND_IMAGE ./frontend'
                         } catch (Exception e) {
                             error "Failed to build frontend Docker image: ${e.message}"
                         }
