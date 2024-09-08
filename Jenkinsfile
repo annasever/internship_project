@@ -11,8 +11,8 @@ pipeline {
         POSTGRES_PASSWORD     = credentials('mypassword')
         MONGO_INITDB_DATABASE = credentials('my_mongo_database')
         DOCKERHUB_CREDENTIALS = credentials('dockerhub_credentials')
-        BACKEND_IMAGE = 'annasever/backend:latest'
-        FRONTEND_IMAGE = 'annasever/frontend:latest'
+        BACKEND_IMAGE = 'annasever/backend'
+        FRONTEND_IMAGE = 'annasever/frontend'
     }
 
     stages {
