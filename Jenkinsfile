@@ -12,10 +12,13 @@ pipeline {
         MONGO_INITDB_DATABASE = credentials('my_mongo_database')
         DOCKERHUB_CREDENTIALS = credentials('dockerhub_credentials')
         GITHUB_WEBHOOK_SECRET = credentials('webhook_secret_credentials')
+
+        FRONTEND_REPO      = "${DOCKERHUB_USERNAME}/frontend"
+        BACKEND_REPO       = "${DOCKERHUB_USERNAME}/backend"
     }
 
     triggers {
-        githubPush()
+        githubPush()  
     }
 
     stages {
@@ -25,63 +28,68 @@ pipeline {
             }
         }
 
-        stage('Build Backend Image if Dockerfile Changed') {
-            when {
-                expression {
-                    def changes = sh(script: "git diff --name-only HEAD~1 HEAD", returnStdout: true).trim()
-                    return changes.contains('Dockerfile')
-                }
-            }
+        stage('Build Frontend Image') {
             steps {
                 script {
-                    docker.withRegistry('https://index.docker.io/v1/', DOCKERHUB_CREDENTIALS) {
-                        def backendImage = docker.build("${BACKEND_IMAGE}:latest", '.')
-                        backendImage.push('latest')
-                    }
+                    sh 'docker build -t ${FRONTEND_REPO}:latest -f frontend/Dockerfile .'
                 }
             }
         }
 
-        stage('Build Frontend Image if Dockerfile Changed') {
-            when {
-                expression {
-                    def changes = sh(script: "git diff --name-only HEAD~1 HEAD", returnStdout: true).trim()
-                    return changes.contains('frontend/Dockerfile')
-                }
-            }
+        stage('Build Backend Image') {
             steps {
                 script {
-                    docker.withRegistry('https://index.docker.io/v1/', DOCKERHUB_CREDENTIALS) {
-                        def frontendImage = docker.build("${FRONTEND_IMAGE}:latest", './frontend')
-                        frontendImage.push('latest')
-                    }
+                    sh 'docker build -t ${BACKEND_REPO}:latest -f ./Dockerfile .'
                 }
             }
         }
 
-        stage('Deploy Services') {
+        stage('Login to DockerHub') {
             steps {
                 script {
-                    docker.withRegistry('https://index.docker.io/v1/', DOCKERHUB_CREDENTIALS) {
-                        sh 'docker-compose pull'
-                        sh 'docker-compose up -d'
-                    }
+                    sh "echo ${DOCKERHUB_CREDENTIALS_PSW} | docker login -u ${DOCKERHUB_CREDENTIALS_USR} --password-stdin"
                 }
+            }
+        }
+
+        stage('Push Frontend Image') {
+            steps {
+                script {
+                    sh 'docker push ${FRONTEND_REPO}:latest'
+                }
+            }
+        }
+
+        stage('Push Backend Image') {
+            steps {
+                script {
+                    sh 'docker push ${BACKEND_REPO}:latest'
+                }
+            }
+        }
+    }
+
+        stage('Build and Run') {
+            steps {
+                sh """
+                    export POSTGRES_DB=${POSTGRES_DB}
+                    export POSTGRES_USER=${POSTGRES_USER}
+                    export POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+                    export MONGO_INITDB_DATABASE=${MONGO_INITDB_DATABASE}
+                    docker-compose up -d
+                """
             }
         }
     }
 
     post {
-        always {
-            cleanWs()
-            sh 'docker image prune -f'
-        }
         success {
-            echo 'Deployment completed successfully!'
+            echo 'Build and push completed successfully, shutting down containers...'
+            sh 'docker-compose down'
         }
+
         failure {
-            echo 'Deployment failed. Check the logs.'
+            echo 'Build or push failed!'
         }
     }
 }
-
