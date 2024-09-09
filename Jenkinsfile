@@ -11,8 +11,8 @@ pipeline {
         POSTGRES_PASSWORD     = credentials('mypassword')
         MONGO_INITDB_DATABASE = credentials('my_mongo_database')
         DOCKERHUB_CREDENTIALS = credentials('dockerhub_credentials')
-        BACKEND_IMAGE = 'annasever/backend'
-        FRONTEND_IMAGE = 'annasever/frontend'
+        BACKEND_IMAGE         = 'annasever/backend'
+        FRONTEND_IMAGE        = 'annasever/frontend'
     }
 
     stages {
@@ -24,67 +24,37 @@ pipeline {
 
         stage('Build Backend Docker Image') {
             steps {
-                script {
-                    try {
-                        sh 'docker build -t $BACKEND_IMAGE .'
-                    } catch (Exception e) {
-                        error "Failed to build backend Docker image: ${e.message}"
-                    }
-                }
+                sh "docker build -t ${BACKEND_IMAGE} ."
             }
         }
 
         stage('Build Frontend Docker Image') {
             steps {
                 dir('frontend') {
-                    script {
-                        try {
-                            sh 'docker build -t $FRONTEND_IMAGE .'
-                        } catch (Exception e) {
-                            error "Failed to build frontend Docker image: ${e.message}"
-                        }
-                    }
+                    sh "docker build -t ${FRONTEND_IMAGE} ."
                 }
             }
         }
 
         stage('Push Docker Images to DockerHub') {
             steps {
-                script {
-                    try {
-                        docker.withRegistry('https://index.docker.io/v1/', 'dockerhub_credentials') {
-                            sh 'docker push $BACKEND_IMAGE'
-                            sh 'docker push $FRONTEND_IMAGE'
-                        }
-                    } catch (Exception e) {
-                        error "Failed to push Docker images to DockerHub: ${e.message}"
-                    }
+                docker.withRegistry('https://index.docker.io/v1/', 'DOCKERHUB_CREDENTIALS') {
+                    sh "docker push ${BACKEND_IMAGE}"
+                    sh "docker push ${FRONTEND_IMAGE}"
                 }
             }
         }
 
         stage('Run Docker Compose') {
             steps {
-                script {
-                    try {
-                        sh 'docker-compose up -d'
-                    } catch (Exception e) {
-                        error "Failed to run Docker Compose: ${e.message}"
-                    }
-                }
+                sh "docker-compose up -d"
             }
         }
     }
 
     post {
         always {
-            script {
-                try {
-                    sh 'docker-compose down'
-                } catch (Exception e) {
-                    echo "Failed to run docker-compose down: ${e.message}"
-                }
-            }
+            sh "docker-compose down"
         }
     }
 }
