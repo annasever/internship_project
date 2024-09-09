@@ -6,6 +6,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    image: annasever/backend:latest
     container_name: backend    
     ports:
       - "8080:8080"
@@ -18,8 +19,9 @@ services:
 
   frontend:
     build:
-      context: .
-      dockerfile: ./frontend/Dockerfile 
+      context: ./frontend
+      dockerfile: Dockerfile 
+    image: annasever/frontend:latest
     container_name: frontend
     ports:
       - "3000:3000"
