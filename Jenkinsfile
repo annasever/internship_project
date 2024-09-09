@@ -28,6 +28,14 @@ pipeline {
             }
         }
 
+        stage('Login to DockerHub') {
+            steps {
+                script {
+                    sh "echo ${DOCKERHUB_CREDENTIALS_PSW} | docker login -u ${DOCKERHUB_CREDENTIALS_USR} --password-stdin"
+                }
+            }
+        }
+
         stage('Build Frontend Image') {
             steps {
                 script {
@@ -35,18 +43,11 @@ pipeline {
                 }
             }
         }
+
         stage('Build Backend Image') {
             steps {
                 script {
                     sh 'docker build -t ${BACKEND_REPO}:latest -f ./Dockerfile .'
-                }
-            }
-        }
-
-        stage('Login to DockerHub') {
-            steps {
-                script {
-                    sh "echo ${DOCKERHUB_CREDENTIALS_PSW} | docker login -u ${DOCKERHUB_CREDENTIALS_USR} --password-stdin"
                 }
             }
         }
