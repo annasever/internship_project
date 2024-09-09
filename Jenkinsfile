@@ -24,37 +24,47 @@ pipeline {
 
         stage('Build Backend Docker Image') {
             steps {
-                sh "docker build -t ${BACKEND_IMAGE} ."
+                script {
+                    sh "docker build -t ${BACKEND_IMAGE} ."
+                }
             }
         }
 
         stage('Build Frontend Docker Image') {
             steps {
                 dir('frontend') {
-                    sh "docker build -t ${FRONTEND_IMAGE} ."
+                    script {
+                        sh "docker build -t ${FRONTEND_IMAGE} ."
+                    }
                 }
             }
         }
 
         stage('Push Docker Images to DockerHub') {
             steps {
-                docker.withRegistry('https://index.docker.io/v1/', 'DOCKERHUB_CREDENTIALS') {
-                    sh "docker push ${BACKEND_IMAGE}"
-                    sh "docker push ${FRONTEND_IMAGE}"
+                script {
+                    docker.withRegistry('https://index.docker.io/v1/', 'DOCKERHUB_CREDENTIALS') {
+                        sh "docker push ${BACKEND_IMAGE}"
+                        sh "docker push ${FRONTEND_IMAGE}"
+                    }
                 }
             }
         }
 
         stage('Run Docker Compose') {
             steps {
-                sh "docker-compose up -d"
+                script {
+                    sh "docker-compose up -d"
+                }
             }
         }
     }
 
     post {
         always {
-            sh "docker-compose down"
+            script {
+                sh "docker-compose down"
+            }
         }
     }
 }
