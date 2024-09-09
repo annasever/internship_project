@@ -35,7 +35,8 @@ pipeline {
             steps {
                 script {
                     docker.withRegistry('https://index.docker.io/v1/', DOCKERHUB_CREDENTIALS) {
-                        docker.build("${BACKEND_IMAGE}:latest", '.').push('latest')
+                        def backendImage = docker.build("${BACKEND_IMAGE}:latest", '.')
+                        backendImage.push('latest')
                     }
                 }
             }
@@ -51,7 +52,8 @@ pipeline {
             steps {
                 script {
                     docker.withRegistry('https://index.docker.io/v1/', DOCKERHUB_CREDENTIALS) {
-                        docker.build("${FRONTEND_IMAGE}:latest", './frontend').push('latest')
+                        def frontendImage = docker.build("${FRONTEND_IMAGE}:latest", './frontend')
+                        frontendImage.push('latest')
                     }
                 }
             }
@@ -59,8 +61,12 @@ pipeline {
 
         stage('Deploy Services') {
             steps {
-                sh 'docker-compose pull'
-                sh 'docker-compose up -d'
+                script {
+                    docker.withRegistry('https://index.docker.io/v1/', DOCKERHUB_CREDENTIALS) {
+                        sh 'docker-compose pull'
+                        sh 'docker-compose up -d'
+                    }
+                }
             }
         }
     }
@@ -78,5 +84,4 @@ pipeline {
         }
     }
 }
-
 
