@@ -10,9 +10,10 @@ pipeline {
         POSTGRES_USER         = credentials('myuser')
         POSTGRES_PASSWORD     = credentials('mypassword')
         MONGO_INITDB_DATABASE = credentials('my_mongo_database')
-        DOCKERHUB_CREDENTIALS = credentials('dockerhub_credentials')
         GITHUB_WEBHOOK_SECRET = credentials('webhook_secret_credentials')
 
+        DOCKERHUB_CREDENTIALS = credentials('dockerhub_credentials')
+        DOCKER_REGISTRY_URL = 'https://index.docker.io/v1/'
         DOCKERHUB_REPO       = "annasever/class_schedule"
     }
 
@@ -48,7 +49,7 @@ pipeline {
         stage('Push Docker Image') {
             steps {
                 script {
-                    docker.withRegistry('https://index.docker.io/v1/', 'dockerhub_credentials') {
+                    docker.withRegistry(${DOCKER_REGISTRY_URL}, ${DOCKERHUB_CREDENTIALS}) {
                         docker.image("${DOCKERHUB_REPO}-frontend").push('latest')
                         docker.image("${DOCKERHUB_REPO}-backend").push('latest')
                     }
