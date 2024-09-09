@@ -19,8 +19,8 @@ services:
 
   frontend:
     build:
-      context: ./frontend
-      dockerfile: Dockerfile 
+      context: .
+      dockerfile: ./frontend/Dockerfile 
     image: annasever/frontend:latest
     container_name: frontend
     ports:
