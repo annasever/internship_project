@@ -13,8 +13,7 @@ pipeline {
         DOCKERHUB_CREDENTIALS = credentials('dockerhub_credentials')
         GITHUB_WEBHOOK_SECRET = credentials('webhook_secret_credentials')
 
-        FRONTEND_REPO      = "${DOCKERHUB_USERNAME}/frontend"
-        BACKEND_REPO       = "${DOCKERHUB_USERNAME}/backend"
+        DOCKERHUB_REPO       = "annasever/class_schedule"
     }
 
     triggers {
@@ -28,18 +27,12 @@ pipeline {
             }
         }
 
-        stage('Login to DockerHub') {
-            steps {
-                script {
-                    sh "echo ${DOCKERHUB_CREDENTIALS_PSW} | docker login -u ${DOCKERHUB_CREDENTIALS_USR} --password-stdin"
-                }
-            }
-        }
-
         stage('Build Frontend Image') {
             steps {
                 script {
-                    sh 'docker build -t ${FRONTEND_REPO}:latest -f frontend/Dockerfile .'
+                    dir('frontend') {
+                        dockerImage = docker.build("${DOCKERHUB_REPO}-frontend")
+                    }
                 }
             }
         }
@@ -47,48 +40,48 @@ pipeline {
         stage('Build Backend Image') {
             steps {
                 script {
-                    sh 'docker build -t ${BACKEND_REPO}:latest -f ./Dockerfile .'
+                    dockerImage = docker.build("${DOCKERHUB_REPO}-backend")
                 }
             }
         }
 
-        stage('Push Frontend Image') {
+        stage('Push Docker Image') {
             steps {
                 script {
-                    sh 'docker push ${FRONTEND_REPO}:latest'
+                    docker.withRegistry('https://index.docker.io/v1/', 'dockerhub_credentials') {
+                        docker.image("${DOCKERHUB_REPO}-frontend").push('latest')
+                        docker.image("${DOCKERHUB_REPO}-backend").push('latest')
+                    }
                 }
             }
         }
 
-        stage('Push Backend Image') {
+        stage('Deploy') {
             steps {
                 script {
-                    sh 'docker push ${BACKEND_REPO}:latest'
+                    withEnv([
+                        "POSTGRES_DB=${POSTGRES_DB}",
+                        "POSTGRES_USER=${POSTGRES_USER}",
+                        "POSTGRES_PASSWORD=${POSTGRES_PASSWORD}",
+                        "MONGO_INITDB_DATABASE=${MONGO_INITDB_DATABASE}"
+                    ]) {
+                        sh 'docker-compose up -d'
+                    }
                 }
-            }
-        }
-
-        stage('Build and Run') {
-            steps {
-                sh """
-                    export POSTGRES_DB=${POSTGRES_DB}
-                    export POSTGRES_USER=${POSTGRES_USER}
-                    export POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-                    export MONGO_INITDB_DATABASE=${MONGO_INITDB_DATABASE}
-                    docker-compose up -d
-                """
             }
         }
     }
 
     post {
         success {
-            echo 'Build and push completed successfully, shutting down containers...'
-            sh 'docker-compose down'
+            echo 'Build, push, and deployment completed successfully, shutting down containers...'
+            script {
+                sh 'docker-compose down'
+            }
         }
 
         failure {
-            echo 'Build or push failed!'
+            echo 'Build, push, or deployment failed!'
         }
     }
 }
