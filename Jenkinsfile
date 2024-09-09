@@ -11,13 +11,11 @@ pipeline {
         POSTGRES_PASSWORD     = credentials('mypassword')
         MONGO_INITDB_DATABASE = credentials('my_mongo_database')
         DOCKERHUB_CREDENTIALS = credentials('dockerhub_credentials')
-        BACKEND_IMAGE         = 'annasever/backend'
-        FRONTEND_IMAGE        = 'annasever/frontend'
-	GITHUB_WEBHOOK_SECRET = credentials('webhook_secret_credentials')
+        GITHUB_WEBHOOK_SECRET = credentials('webhook_secret_credentials')
     }
 
     triggers {
-       githubPush()  
+        githubPush()
     }
 
     stages {
@@ -27,9 +25,12 @@ pipeline {
             }
         }
 
-     stage('Build Backend Image if Changed') {
+        stage('Build Backend Image if Dockerfile Changed') {
             when {
-                changeset "**/src/main/**"
+                expression {
+                    def changes = sh(script: "git diff --name-only HEAD~1 HEAD", returnStdout: true).trim()
+                    return changes.contains('Dockerfile')
+                }
             }
             steps {
                 script {
@@ -40,9 +41,12 @@ pipeline {
             }
         }
 
-        stage('Build Frontend Image if Changed') {
+        stage('Build Frontend Image if Dockerfile Changed') {
             when {
-                changeset "**/frontend/**" 
+                expression {
+                    def changes = sh(script: "git diff --name-only HEAD~1 HEAD", returnStdout: true).trim()
+                    return changes.contains('frontend/Dockerfile')
+                }
             }
             steps {
                 script {
@@ -56,7 +60,7 @@ pipeline {
         stage('Deploy Services') {
             steps {
                 sh 'docker-compose pull'
-                sh 'docker-compose up -d'  
+                sh 'docker-compose up -d'
             }
         }
     }
@@ -74,3 +78,5 @@ pipeline {
         }
     }
 }
+
+
