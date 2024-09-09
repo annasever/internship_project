@@ -18,9 +18,10 @@ pipeline {
     }
 
     triggers {
-        githubPush()  
+        githubPush()
     }
 
+    // Все этапы должны быть в блоке stages
     stages {
         stage('Checkout') {
             steps {
@@ -35,7 +36,6 @@ pipeline {
                 }
             }
         }
-
         stage('Build Backend Image') {
             steps {
                 script {
@@ -67,7 +67,6 @@ pipeline {
                 }
             }
         }
-    }
 
         stage('Build and Run') {
             steps {
@@ -92,4 +91,5 @@ pipeline {
             echo 'Build or push failed!'
         }
     }
+}
 
