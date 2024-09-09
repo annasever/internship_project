@@ -13,6 +13,11 @@ pipeline {
         DOCKERHUB_CREDENTIALS = credentials('dockerhub_credentials')
         BACKEND_IMAGE         = 'annasever/backend'
         FRONTEND_IMAGE        = 'annasever/frontend'
+	GITHUB_WEBHOOK_SECRET = credentials('webhook_secret_credentials')
+    }
+
+    triggers {
+       githubPush()  
     }
 
     stages {
@@ -22,50 +27,50 @@ pipeline {
             }
         }
 
-        stage('Build Backend Docker Image') {
+     stage('Build Backend Image if Changed') {
+            when {
+                changeset "**/src/main/**"
+            }
             steps {
                 script {
-                    sh "docker build -t ${BACKEND_IMAGE} ."
-                }
-            }
-        }
-
-        stage('Build Frontend Docker Image') {
-            steps {
-                dir('frontend') {
-                    script {
-                        sh "docker build -t ${FRONTEND_IMAGE} ."
+                    docker.withRegistry('https://index.docker.io/v1/', DOCKERHUB_CREDENTIALS) {
+                        docker.build("${BACKEND_IMAGE}:latest", '.').push('latest')
                     }
                 }
             }
         }
 
-        stage('Push Docker Images to DockerHub') {
+        stage('Build Frontend Image if Changed') {
+            when {
+                changeset "**/frontend/**" 
+            }
             steps {
                 script {
-                    docker.withRegistry('https://index.docker.io/v1/', 'DOCKERHUB_CREDENTIALS') {
-                        sh "docker push ${BACKEND_IMAGE}"
-                        sh "docker push ${FRONTEND_IMAGE}"
+                    docker.withRegistry('https://index.docker.io/v1/', DOCKERHUB_CREDENTIALS) {
+                        docker.build("${FRONTEND_IMAGE}:latest", './frontend').push('latest')
                     }
                 }
             }
         }
 
-        stage('Run Docker Compose') {
+        stage('Deploy Services') {
             steps {
-                script {
-                    sh "docker-compose up -d"
-                }
+                sh 'docker-compose pull'
+                sh 'docker-compose up -d'  
             }
         }
     }
 
     post {
         always {
-            script {
-                sh "docker-compose down"
-            }
+            cleanWs()
+            sh 'docker image prune -f'
+        }
+        success {
+            echo 'Deployment completed successfully!'
+        }
+        failure {
+            echo 'Deployment failed. Check the logs.'
         }
     }
 }
-
