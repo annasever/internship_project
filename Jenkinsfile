@@ -21,7 +21,6 @@ pipeline {
         githubPush()
     }
 
-    // Все этапы должны быть в блоке stages
     stages {
         stage('Checkout') {
             steps {
