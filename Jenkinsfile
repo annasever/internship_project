@@ -49,10 +49,8 @@ pipeline {
         stage('Push Docker Image') {
             steps {
                 script {
-                    docker.withRegistry("${DOCKER_REGISTRY_URL}", "${DOCKERHUB_CREDENTIALS}") {
-                        docker.image("${DOCKERHUB_REPO}-frontend").push('latest')
-                        docker.image("${DOCKERHUB_REPO}-backend").push('latest')
-                    }
+                    docker.image("${DOCKERHUB_REPO}-frontend").push('latest')
+                    docker.image("${DOCKERHUB_REPO}-backend").push('latest')
                 }
             }
         }
