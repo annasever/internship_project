@@ -1,5 +1,6 @@
 buildscript {
     repositories {
+        jcenter()
         mavenCentral()
     }
 
@@ -15,6 +16,7 @@ plugins {
     id 'jacoco'
     id 'checkstyle'
 }
+
 
 group 'com.softserve'
 
@@ -97,8 +99,12 @@ ext {
 //    implementation "org.springframework.boot:spring-boot-star
 
 dependencies {
-    testImplementation group: 'org.assertj', name: 'assertj-core', version: '3.6.1'
-    testImplementation('pl.pragmatists:JUnitParams:1.0.5')
+
+    testImplementation "org.assertj:assertj-core:3.6.1"
+    testImplementation "pl.pragmatists:JUnitParams:1.0.5"
+
+    testImplementation "org.junit.jupiter:junit-jupiter-api:5.5.2"
+    testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:5.5.2"
 
     //Passay (password generator)
     implementation group: 'org.passay', name: 'passay', version: '1.6.0'
