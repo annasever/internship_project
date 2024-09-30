@@ -6,6 +6,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    image: annasever/class_schedule/backend:latest 
     container_name: backend    
     ports:
       - "8080:8080"
@@ -13,24 +14,28 @@ services:
       - postgres
       - mongo
       - redis
-
+    env_file:
+      - .env
 
   frontend:
     build:
       context: .
       dockerfile: ./frontend/Dockerfile 
+    image: annasever/class_schedule/frontend:latest
     container_name: frontend
     ports:
       - "3000:3000"
     depends_on:
       - backend
-
+    env_file:
+      - .env 
+       
   postgres:
     image: postgres:latest
     environment:
-      POSTGRES_DB: database
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: password
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     ports:
       - "5432:5432"
     volumes:
@@ -46,7 +51,7 @@ services:
   mongo:
     image: mongo:latest
     environment:
-      MONGO_INITDB_DATABASE: schedules
+      MONGO_INITDB_DATABASE: ${MONGO_INITDB_DATABASE}
     ports:
       - "27017:27017"
     volumes:
