@@ -35,11 +35,3 @@ In order to create a local copy of the project you need:
 9. Press OK to save the configuration
 10. `Run –>> Run 'Tomcat 9.0.50'` to start the backend server
 
-## Starting frontend server using Node.js
-1. Download and install Node.js 14.17.4 LTS version https://nodejs.org/en/
-2. Open a terminal in `/frontend` directory of the downloaded project and run the following command.
-
-       npm install
-3. After the installation is finished run the following command to start the frontend server
-
-       npm start

@@ -13,7 +13,7 @@ pathB=backup/
 #write this on the command line as the first parameter
 filename=$1
 #write your user
-dbUser=user
+dbUser=postgres
 #write your database
 database=database
 #write your host
